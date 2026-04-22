@@ -41,13 +41,13 @@ pip install apache-superset
 ## Step 4: Set the Secret Key
 
 ```bash
-export SUPERSET_SECRET_KEY=$(openssl rand -base64 42)
+echo "SECRET_KEY = '$(openssl rand -base64 42)'" > ~/superset_config.py
 ```
 
 To make it permanent, add it to your shell profile or a config file:
 
 ```bash
-echo "export SUPERSET_SECRET_KEY='your-generated-key'" >> ~/.bashrc
+echo 'export SUPERSET_CONFIG_PATH=~/superset_config.py' >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -136,11 +136,10 @@ Description=Apache Superset
 After=network.target
 
 [Service]
-User=your_user
-WorkingDirectory=/home/your_user
-Environment="PATH=/home/your_user/superset-env/bin"
-Environment="SUPERSET_SECRET_KEY=your-secret-key"
-ExecStart=/home/your_user/superset-env/bin/gunicorn -w 4 -k gevent --timeout 120 -b 0.0.0.0:8088 "superset.app:create_app()"
+User=ubuntu
+Environment=SUPERSET_CONFIG_PATH=/home/ubuntu/superset_config.py
+WorkingDirectory=/home/ubuntu
+ExecStart=/home/ubuntu/superset-env/bin/gunicorn -w 4 -k gevent --timeout 120 -b 0.0.0.0:8088 --limit-request-line 0 --limit-request-field_size 0 "superset.app:create_app()"
 Restart=always
 
 [Install]
@@ -153,6 +152,7 @@ Enable and start the service:
 sudo systemctl daemon-reload
 sudo systemctl enable superset
 sudo systemctl start superset
+sudo systemctl status superset
 ```
 
 ---
